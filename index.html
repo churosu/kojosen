@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>篭城戦</title>
+<style>
+:root{
+  --soot:#14100d; --stone:#211b16; --stone2:#2c251e; --edge:#443a2f;
+  --floor:#a89a83; --floor2:#95876e; --joint:#7d705a;
+  --unlit:#171310;
+  --wall:#6b5c4b; --wallt:#96856d;
+  --torch:#f0a63c; --torch-d:#b87a22;
+  --atk:#c0402c; --atk2:#e0674f;
+  --def:#4a6f92; --def2:#84a8c6;
+  --text:#ece3d4; --dim:#a2968a;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  --goth:"Hiragino Kaku Gothic ProN","Yu Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100svh;color:var(--text);font-family:var(--goth);font-size:15px;line-height:1.7;
+  background:
+    linear-gradient(180deg,#2c2118 0,#2c211800 260px),
+    repeating-linear-gradient(90deg,#00000000 0 76px,#00000038 76px 80px),
+    repeating-linear-gradient(0deg,#1b1613 0 34px,#120f0c 34px 38px),
+    var(--soot);
+  background-attachment:fixed;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.wrap{max-width:460px;margin:0 auto;padding:18px 13px 40px}
+
+h1.t{font-family:var(--mincho);font-weight:400;margin:24px 0 6px;font-size:42px;letter-spacing:.2em;text-indent:.2em;
+  color:#f4ead7;text-shadow:0 2px 0 #000a;
+  border-bottom:1px solid #4a3d2d;padding-bottom:12px}
+.lede{color:var(--dim);margin:0 0 24px;font-size:14px}
+.field{margin:0 0 20px}
+.field>h2{font-family:var(--mincho);font-size:14px;font-weight:400;letter-spacing:.14em;margin:0 0 9px;color:var(--torch)}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:12px 6px;border:1px solid var(--edge);background:var(--stone);color:var(--dim)}
+.seg button[aria-pressed=true]{background:var(--torch);color:#241a09;border-color:var(--torch);font-weight:700}
+.sidecard{display:block;width:100%;text-align:left;padding:12px 13px;border:1px solid var(--edge);background:var(--stone);margin-bottom:8px}
+.sidecard[aria-pressed=true]{border-color:var(--torch);background:var(--stone2);box-shadow:inset 3px 0 0 var(--torch)}
+.sidecard b{font-family:var(--mincho);font-weight:400;font-size:17px;letter-spacing:.1em}
+.sidecard span{display:block;font-size:12.5px;color:var(--dim);line-height:1.55}
+.go{width:100%;margin-top:6px;padding:15px;background:var(--atk);color:#fff;font-weight:700;letter-spacing:.14em;font-size:16px;
+  border:1px solid #8f2d1e}
+.go[disabled]{background:#332b23;color:#7a6f63;border-color:var(--edge)}
+.ghost{width:100%;margin-top:9px;padding:12px;border:1px solid var(--edge);color:var(--dim)}
+input.code{width:100%;padding:14px;background:var(--stone);border:1px solid var(--edge);color:var(--text);
+  font-family:var(--mincho);font-size:26px;letter-spacing:.4em;text-align:center;text-transform:uppercase}
+.codebox{padding:18px;border:1px solid var(--torch);background:#241b12;text-align:center;margin-bottom:12px}
+.codebox b{display:block;font-family:var(--mincho);font-size:38px;letter-spacing:.34em;text-indent:.34em;color:var(--torch)}
+.codebox span{font-size:12px;color:var(--dim)}
+.netst{font-size:12.5px;color:var(--dim);margin:10px 0;min-height:1.6em}
+
+/* 編成 */
+.unit{display:flex;align-items:center;gap:9px;padding:8px 9px;border:1px solid var(--edge);background:var(--stone);margin-bottom:7px}
+.unit .no{font-family:var(--mincho);font-size:13px;color:var(--dim);width:2.6em;flex:0 0 auto}
+.slot{flex:1;padding:10px 6px;border:1px dashed var(--edge);text-align:center;font-size:13px;color:var(--dim);background:#1b1611}
+.slot.on{border-style:solid;border-color:var(--torch);color:var(--text);background:var(--stone2)}
+.slot b{font-family:var(--mincho);font-size:15px;font-weight:400;letter-spacing:.06em}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pick button{padding:10px 8px;border:1px solid var(--edge);text-align:left;background:var(--stone2)}
+.pick button[disabled]{opacity:.32}
+.pick b{display:block;font-family:var(--mincho);font-size:15px;font-weight:400;letter-spacing:.08em}
+.pick span{display:block;font-size:11px;color:var(--dim);line-height:1.45}
+
+/* 対局 */
+.bar{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:9px}
+.bar h1{font-family:var(--mincho);font-weight:400;font-size:18px;letter-spacing:.16em;margin:0}
+.bar .sub{font-size:11.5px;color:var(--dim)}
+.iconbtn{padding:6px 10px;border:1px solid var(--edge);font-size:12.5px;color:var(--dim)}
+.score{display:flex;gap:7px;margin-bottom:9px}
+.sc{flex:1;padding:6px 8px;border:1px solid var(--edge);background:var(--stone);font-size:10.5px;color:var(--dim);line-height:1.35}
+.sc b{display:block;font-family:var(--mincho);font-size:16px;font-weight:400;color:var(--text);font-variant-numeric:tabular-nums}
+.sc.a{box-shadow:inset 3px 0 0 var(--atk)} .sc.d{box-shadow:inset 3px 0 0 var(--def)}
+.sc.t{box-shadow:inset 3px 0 0 var(--torch)}
+.rez{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px;font-size:11.5px;color:var(--dim)}
+.rez .lb{font-family:var(--mincho);letter-spacing:.08em}
+.rez button,.rez span.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid var(--edge);background:var(--stone)}
+.rez .gl{font-family:var(--mincho);font-size:13px;color:var(--text)}
+.rez .cd{font-variant-numeric:tabular-nums}
+.rez button{border-color:var(--torch);color:var(--torch);background:#241b12}
+.rez button[aria-pressed=true]{background:var(--torch);color:#241a09;font-weight:700}
+.rez button[aria-pressed=true] .gl{color:#241a09}
+.rez .ok{border-color:#4e6b45;color:#9dc48f}
+.tok.rez i{background:none;border:2px dashed var(--torch);opacity:.9}
+.tok.rez .g{color:var(--torch);text-shadow:none}
+.tok.rez .hp{display:none}
+
+.board{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border:7px solid #2a231b;outline:1px solid #4a3f33;
+  background:
+    repeating-linear-gradient(0deg,transparent 0 calc(11.111% - 1px),#6d604a55 calc(11.111% - 1px) 11.111%),
+    repeating-linear-gradient(90deg,transparent 0 calc(11.111% - 1px),#6d604a55 calc(11.111% - 1px) 11.111%),
+    linear-gradient(160deg,var(--floor) 0%,var(--floor2) 100%);
+  box-shadow:inset 0 0 44px #00000055, 0 16px 34px #00000070}
+.cell{position:absolute;width:11.111%;height:11.111%}
+.cell.fog{background:#100c09b0;background-image:radial-gradient(#00000030 1px,transparent 1px);background-size:5px 5px;
+  box-shadow:inset 0 0 12px #0000004a}
+/* 動ける先 */
+.cell.mv{background:#f0a63c1f}
+.cell.mv::after{content:"";position:absolute;left:32%;top:32%;width:36%;height:36%;background:var(--torch);
+  transform:rotate(45deg);box-shadow:0 0 7px #f0a63c99}
+.cell.mv.fog{background:#3d2e19b0}
+/* 選択中の駒がいるマス */
+.cell.selcell{box-shadow:inset 0 0 0 4px var(--torch),inset 0 0 18px #f0a63c66;background:#f0a63c33}
+.cell.selcell::after{display:none}
+
+.walls{position:absolute;inset:0;pointer-events:none;z-index:4;filter:drop-shadow(0 2px 3px #00000070)}
+.w{position:absolute;z-index:1}
+.wh{height:9px;width:11.111%;transform:translateY(-50%);
+  background:linear-gradient(180deg,#9d8b73 0,#7a6a56 46%,#4d4134 100%)}
+.wv{width:9px;height:11.111%;transform:translateX(-50%);
+  background:linear-gradient(90deg,#9d8b73 0,#7a6a56 46%,#4d4134 100%)}
+.wj{position:absolute;width:9px;height:9px;transform:translate(-50%,-50%);z-index:2;
+  background:linear-gradient(135deg,#9d8b73 0,#7a6a56 46%,#4d4134 100%)}
+
+.base{position:absolute;width:11.111%;height:11.111%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2}
+.base i{width:80%;height:80%;border:2px solid #6d5c3e;display:flex;align-items:center;justify-content:center;font-style:normal;
+  font-family:var(--mincho);font-size:min(3.6vw,16px);color:#5f4f34;background:#00000018}
+.base.pend i{border-color:var(--torch);color:var(--torch);background:#f0a63c22;box-shadow:0 0 12px #f0a63c66}
+.base.held i{border-color:var(--atk);color:#fff;background:var(--atk)}
+
+.tok{position:absolute;width:11.111%;height:11.111%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:3}
+.tok i{width:84%;height:84%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-style:normal;
+  background:linear-gradient(#d4573f,#9c3020);border:1px solid #00000055;box-shadow:0 2px 3px #00000066}
+.tok.d i{background:linear-gradient(#5d86ab,#385772)}
+.tok .g{font-family:var(--mincho);font-size:min(3.2vw,14px);line-height:1;color:#fff;letter-spacing:.5px;text-shadow:0 1px 1px #0008}
+.tok .hp{display:flex;gap:2px}
+.tok .hp s{width:4px;height:4px;background:#ffffff3d;text-decoration:none}
+.tok .hp s.on{background:#fff}
+.tok .hp s.half{background:linear-gradient(90deg,#fff 50%,#ffffff3d 50%)}
+.tok.done i{opacity:.62}
+.tok.need i{outline:2px dashed #f0a63ccc;outline-offset:2px}
+.tok.sel{z-index:6}
+.tok.sel i{outline:none;opacity:1;
+  box-shadow:0 0 0 3px #fff,0 0 0 7px var(--torch),0 0 24px #f0a63cdd,0 3px 6px #000a}
+
+.arrows{position:absolute;inset:0;pointer-events:none;z-index:5}
+.fx{position:absolute;inset:0;pointer-events:none;z-index:8;overflow:hidden}
+.fxc{position:absolute;width:11.111%;height:11.111%;display:flex;align-items:center;justify-content:center}
+.fxc>*{position:absolute}
+.sl{width:130%;height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,#fff 45%,#ffc978 62%,transparent);
+  animation:sl .3s ease-out forwards}
+@keyframes sl{0%{transform:rotate(-34deg) scaleX(0);opacity:0}
+  22%{transform:rotate(-34deg) scaleX(1);opacity:1}
+  100%{transform:rotate(-34deg) scaleX(1.18);opacity:0}}
+.sl.b{animation-name:slb}
+@keyframes slb{0%{transform:rotate(40deg) scaleX(0);opacity:0}
+  22%{transform:rotate(40deg) scaleX(1);opacity:1}
+  100%{transform:rotate(40deg) scaleX(1.18);opacity:0}}
+.hv .sl{height:7px;box-shadow:0 0 14px #ffd9a0,0 0 26px #f0a63c;animation-duration:.4s}
+.rg{width:42%;height:42%;border:2px solid #ffd9a0;border-radius:50%;animation:rg .36s ease-out forwards}
+@keyframes rg{0%{transform:scale(.25);opacity:.95}100%{transform:scale(2.2);opacity:0}}
+.hv .rg{border-width:3px;border-color:#fff;box-shadow:0 0 18px #f0a63c;animation-duration:.46s}
+.hv .rg2{width:42%;height:42%;border:2px solid #f0a63c;border-radius:50%;animation:rg .58s ease-out .08s forwards}
+.sp{width:3px;height:26%;background:linear-gradient(#fff,transparent);transform-origin:50% 100%;animation:sp .38s ease-out forwards}
+@keyframes sp{0%{transform:rotate(var(--a)) translateY(-4px) scaleY(.3);opacity:1}
+  100%{transform:rotate(var(--a)) translateY(-26px) scaleY(1);opacity:0}}
+.hl{width:46%;height:46%;border:2px solid #9fd18a;border-radius:50%;animation:rg .5s ease-out forwards}
+.kb{width:110%;height:110%;border-radius:50%;
+  background:radial-gradient(circle,#fff 0%,#f0a63c 26%,#8c2f1c 52%,transparent 70%);
+  animation:kb .5s ease-out forwards}
+@keyframes kb{0%{transform:scale(.15);opacity:1}60%{opacity:.85}100%{transform:scale(1.5);opacity:0}}
+.kg{font-family:var(--mincho);font-size:min(3.2vw,14px);color:#fff;text-shadow:0 0 8px #f0a63c;
+  animation:kg .8s ease-out forwards}
+@keyframes kg{0%{transform:translateY(0) scale(1);opacity:1}
+  100%{transform:translateY(-26px) scale(.7);opacity:0}}
+.sh{--dx:0px;--dy:0px;width:5px;height:5px;background:#f2dcb4;animation:sh .62s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes sh{0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}
+  100%{transform:translate(var(--dx),var(--dy)) rotate(180deg) scale(.25);opacity:0}}
+.beam{position:absolute;inset:0;width:100%;height:100%}
+.beam line{stroke:#ffdba6;stroke-width:1.3;stroke-linecap:round;animation:bm .32s ease-out forwards}
+.beam.mi line{stroke:#8fa0b4;stroke-width:.8;stroke-dasharray:2 2;animation-duration:.4s}
+@keyframes bm{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.fx{display:none}}
+
+/* 選択パネル */
+.info{margin:10px 0 0;padding:9px 11px;border:1px solid var(--edge);background:var(--stone);font-size:12.5px;color:var(--dim);line-height:1.6}
+.info.picked{border-color:var(--torch);background:#241b12;box-shadow:inset 3px 0 0 var(--torch)}
+.info .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.info .tag{font-size:10.5px;color:var(--torch);border:1px solid var(--torch-d);padding:1px 6px}
+.info b{color:var(--text);font-family:var(--mincho);font-weight:400;font-size:15px;letter-spacing:.06em}
+.info .hpn{font-size:11.5px;color:var(--dim);margin-left:auto}
+.info .sd{margin-top:4px;font-size:11.5px}
+.info .drop{margin-left:6px;padding:3px 9px;border:1px solid var(--edge);font-size:11px;color:var(--dim)}
+.actions{display:flex;gap:7px;margin-top:10px}
+.actions button{flex:1;padding:12px 4px;border:1px solid var(--edge);color:var(--dim);font-size:12.5px;white-space:nowrap}
+.actions button.pri{background:var(--torch);border-color:var(--torch);color:#241a09;font-weight:700}
+.actions button.pri[disabled]{background:#332b23;border-color:var(--edge);color:#7a6f63}
+.log{margin-top:10px;font-size:12px;color:var(--dim);line-height:1.6}
+.log div{padding:2px 0;border-bottom:1px solid #ffffff0f}
+
+.ov{position:fixed;inset:0;background:#0f0c09f5;display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+.ov[hidden]{display:none}
+.card{background:var(--stone);border:1px solid var(--edge);padding:20px;max-width:410px;width:100%;max-height:86svh;overflow:auto}
+.card h3{font-family:var(--mincho);font-weight:400;font-size:20px;letter-spacing:.1em;margin:0 0 11px;color:var(--torch)}
+.card p{margin:0 0 12px;font-size:13.5px}
+.card ul{margin:0 0 12px;padding-left:1.1em;font-size:13.5px}
+.card ul li{margin-bottom:6px}
+.card .row{display:flex;gap:8px;margin-top:8px}
+.card .row button{flex:1;padding:12px;border:1px solid var(--edge)}
+.card .row button.pri{background:var(--torch);border-color:var(--torch);color:#241a09;font-weight:700}
+.sklist{width:100%;border-collapse:collapse;font-size:12.5px}
+.sklist td{padding:5px 4px;border-bottom:1px solid #3a3128;vertical-align:top}
+.sklist td.k{font-family:var(--mincho);font-size:16px;width:1.9em;color:var(--torch)}
+.sklist td.n{width:4.2em;font-family:var(--mincho);font-size:14px}
+:focus-visible{outline:2px solid var(--torch);outline-offset:2px}
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"
+ onerror="var s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';document.head.appendChild(s);"></script>
+<div class="wrap" id="app"></div>
+<div class="ov" id="ov" hidden><div class="card" id="ovcard"></div></div>
+<script>
+"use strict";
+const N=9, MAXTURN=45, NEED_BASE=2, NEED_KILL=5, RESPAWN=2;
+const BONUS_KILL=3, BONUS_TURN=10;   // 砦を1つ落とすごとの加算
+const A="A", D="D";                      // 攻め / 守り
+
+/* ================= スキル ================= */
+const SK={
+  SHK:{g:"疾",n:"疾駆",d:"曲がりながら動ける。移動距離も1増えて4マス",k:"移動"},
+  ONM:{g:"隠",n:"隠密",d:"そのターン移動しなくてよい",k:"移動"},
+  SHG:{g:"射",n:"射撃",d:"射程が自分の視界と同じになる。1マス遠いごとに命中率-20%。移動距離は変わらない",k:"行動"},
+  CHI:{g:"癒",n:"治癒",d:"隣の味方のうちHP最小の1体を1回復",k:"行動"},
+  KOB:{g:"鼓",n:"鼓舞",d:"隣接する味方全員の通常攻撃を+1",k:"行動"},
+  GOW:{g:"剛",n:"剛腕",d:"通常攻撃のダメージ+0.5",k:"常時"},
+  HAN:{g:"反",n:"反撃",d:"通常攻撃を受けたら攻撃者に1ダメージ",k:"常時"},
+  TOM:{g:"遠",n:"遠目",d:"視界が2増える（十字に4マス）",k:"常時"},
+  REN:{g:"連",n:"連携",d:"同じ敵を味方も殴っていれば、もう一度通常攻撃する（ターンに1度）",k:"常時"},
+  YOU:{g:"揺",n:"揺動",d:"周囲8マスの敵は必ずこの駒を狙う。射程外ならその攻撃は空振りになる",k:"常時"},
+  TAN:{g:"短",n:"短縮",d:"この駒に隣接する壁を、他の味方だけが通り抜けられる。自分では通れない",k:"移動"}
+};
+const SKIDS=Object.keys(SK);
+
+/* ================= マップ ================= */
+const MAPS=[
+ {id:"random",name:"ランダム",desc:"対局のたびに壁を組み直します。条件は固定盤と同じです。",random:true},
+ {id:"fix1",name:"固定1",desc:"二の丸。抜け道が多く、手前の二砦が左右に開いている。",
+  bases:[[4, 0], [8, 6], [0, 5]],
+  dstart:[[4, 1], [8, 7], [1, 5]],
+  h:[[0, 3], [0, 4], [0, 6], [1, 3], [2, 3], [3, 3], [3, 4], [3, 6], [4, 1], [4, 3], [5, 1], [5, 3], [6, 0], [6, 3], [7, 0], [7, 6], [8, 0], [8, 5]],
+  v:[[0, 0], [0, 1], [0, 2], [0, 7], [1, 5], [1, 6], [2, 0], [2, 1], [2, 2], [2, 7], [4, 0], [4, 5], [4, 6], [4, 7], [5, 6], [5, 7], [6, 2], [6, 5], [7, 2], [7, 3], [7, 4], [7, 7]]},
+ {id:"fix2",name:"固定2",desc:"天守。手前の二砦が近く、守り手が固めて迎え撃てる。",
+  bases:[[5, 1], [1, 5], [8, 6]],
+  dstart:[[5, 0], [2, 5], [8, 5]],
+  h:[[0, 0], [0, 3], [1, 0], [1, 2], [1, 4], [2, 2], [2, 5], [3, 2], [4, 0], [4, 3], [4, 6], [5, 1], [5, 3], [6, 2], [7, 0], [8, 0]],
+  v:[[0, 2], [0, 5], [0, 6], [0, 7], [2, 0], [2, 1], [2, 4], [2, 7], [3, 5], [3, 6], [4, 2], [5, 0], [5, 5], [5, 6], [5, 7], [6, 1], [6, 4], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7]]}
+];
+const START_A=[[1,7],[3,7],[5,7],[7,7],[4,8]];
+const DEF_N=3;
+// 守り手が初期配置できるマス = どれかの砦の周囲9マス
+function placeZone(map){
+  const out=[], seen=new Set();
+  for(const [bx,by] of map.bases) for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+    const x=bx+dx, y=by+dy, k=x+","+y;
+    if(x<0||x>=9||y<0||y>=9||seen.has(k)) continue;
+    seen.add(k); out.push([x,y]);
+  }
+  return out;
+}
+// ---- 迷路の自動生成（固定盤と同じ条件を満たすまで組み直す）----
+function genMap(seedIn){
+  const S=9, OR=[[0,-1],[1,0],[0,1],[-1,0]];
+  let sd=(seedIn>>>0)||((Math.random()*4294967296)>>>0);
+  const rf=()=>{ sd=(Math.imul(sd,1664525)+1013904223)>>>0; return sd/4294967296; };
+  const ri=n=>Math.floor(rf()*n);
+  const ek=(t,x,y)=>t+x+","+y;
+  const px=k=>k.slice(1).split(",").map(Number);
+  const cellsOf=(t,x,y)=> t==="h" ? [[x,y],[x,y+1]] : [[x,y],[x+1,y]];
+  const endsOf=(t,x,y)=> t==="h" ? [[x,y+1],[x+1,y+1]] : [[x+1,y],[x+1,y+1]];
+  const edgesOf=(x,y)=>{
+    const e=[];
+    if(y>0) e.push(["h",x,y-1]); if(y<S-1) e.push(["h",x,y]);
+    if(x>0) e.push(["v",x-1,y]); if(x<S-1) e.push(["v",x,y]);
+    return e;
+  };
+  const md=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
+  for(let attempt=0; attempt<260; attempt++){
+    // 全域木で完全迷路を掘る
+    const open=new Set(), seenC=new Set(["4,4"]), st=[[4,4]];
+    while(st.length){
+      const [x,y]=st[st.length-1], nb=[];
+      for(const [dx,dy] of OR){ const nx=x+dx,ny=y+dy;
+        if(nx>=0&&nx<S&&ny>=0&&ny<S&&!seenC.has(nx+","+ny)) nb.push([nx,ny]); }
+      if(!nb.length){ st.pop(); continue; }
+      const [nx,ny]=nb[ri(nb.length)];
+      open.add(nx===x?ek("h",x,Math.min(y,ny)):ek("v",Math.min(x,nx),y));
+      seenC.add(nx+","+ny); st.push([nx,ny]);
+    }
+    const walls=new Set();
+    for(let y=0;y<S;y++) for(let x=0;x<S;x++){
+      if(x+1<S&&!open.has(ek("v",x,y))) walls.add(ek("v",x,y));
+      if(y+1<S&&!open.has(ek("h",x,y))) walls.add(ek("h",x,y));
+    }
+    // 攻め手の手前1列に触れる壁は外す
+    for(const k of [...walls]){ const [x,y]=px(k);
+      if(cellsOf(k[0],x,y).some(c=>c[1]===S-1)) walls.delete(k); }
+    const cnt=(x,y)=>edgesOf(x,y).filter(([t,ex,ey])=>walls.has(ek(t,ex,ey))).length;
+    // 壁が1本もないマスには足す
+    for(let y=0;y<S-1;y++) for(let x=0;x<S;x++){
+      if(cnt(x,y)>0) continue;
+      const cand=edgesOf(x,y).filter(([t,ex,ey])=>!cellsOf(t,ex,ey).some(c=>c[1]===S-1));
+      if(cand.length){ const c=cand[ri(cand.length)]; walls.add(ek(c[0],c[1],c[2])); }
+    }
+    // 孤立した壁から間引く（つながりを残す）
+    const idx=new Map();
+    for(const k of walls){ const [x,y]=px(k);
+      for(const p of endsOf(k[0],x,y)){ const pk=p.join(",");
+        if(!idx.has(pk)) idx.set(pk,0); idx.set(pk,idx.get(pk)+1); } }
+    const links=k=>{ const [x,y]=px(k);
+      return endsOf(k[0],x,y).reduce((n,p)=>n+(idx.get(p.join(","))||1)-1,0); };
+    const order=[...walls].map(k=>[k,links(k),rf()]).sort((a,b)=>a[1]-b[1]||a[2]-b[2]);
+    const target=36+ri(9);
+    for(const [k] of order){
+      if(walls.size<=target) break;
+      const [x,y]=px(k);
+      if(cellsOf(k[0],x,y).filter(c=>c[1]<S-1).every(c=>cnt(c[0],c[1])>1)) walls.delete(k);
+    }
+    const pass=(a,b)=> a[0]===b[0]
+      ? !walls.has(ek("h",a[0],Math.min(a[1],b[1])))
+      : !walls.has(ek("v",Math.min(a[0],b[0]),a[1]));
+    // 到達性
+    const dist=new Map(), q=[];
+    for(const [x,y] of START_A){ dist.set(x+","+y,0); q.push([x,y]); }
+    for(let i=0;i<q.length;i++){ const [x,y]=q[i];
+      for(const [dx,dy] of OR){ const nx=x+dx,ny=y+dy;
+        if(nx<0||nx>=S||ny<0||ny>=S||dist.has(nx+","+ny)||!pass([x,y],[nx,ny])) continue;
+        dist.set(nx+","+ny,dist.get(x+","+y)+1); q.push([nx,ny]); } }
+    if(dist.size<S*S) continue;
+    // 砦：中央より奥に1つ、手前に2つ
+    const deep=[], near=[];
+    for(let y=0;y<4;y++) for(let x=0;x<S;x++) deep.push([x,y]);
+    for(let y=5;y<S-1;y++) for(let x=0;x<S;x++) near.push([x,y]);
+    const ways=b=>OR.filter(([dx,dy])=>{const nx=b[0]+dx,ny=b[1]+dy;
+      return nx>=0&&nx<S&&ny>=0&&ny<S&&pass(b,[nx,ny]);}).length;
+    const around=b=>{let n=0; for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+      const x=b[0]+dx,y=b[1]+dy; if((dx||dy)&&x>=0&&x<S&&y>=0&&y<S) n++;} return n;};
+    let bases=null,bs=-1;
+    for(let i=0;i<1200;i++){
+      const t=[deep[ri(deep.length)],near[ri(near.length)],near[ri(near.length)]];
+      if(t[1][0]===t[2][0]&&t[1][1]===t[2][1]) continue;
+      const ds=[md(t[0],t[1]),md(t[1],t[2]),md(t[0],t[2])];
+      if(Math.min(...ds)<5) continue;
+      if(!t.every(b=>ways(b)>=2&&around(b)>=5)) continue;
+      const sc=Math.min(...ds)*3-(Math.max(...ds)-Math.min(...ds))*4+Math.abs(t[1][0]-t[2][0]);
+      if(sc>bs){ bs=sc; bases=t; }
+    }
+    if(!bases) continue;
+    const paths=bases.map(b=>dist.get(b.join(",")));
+    if(Math.max(...paths)>20||Math.min(...paths)<2) continue;
+    const dstart=[];
+    for(const b of bases){
+      for(const [dx,dy] of OR){ const c=[b[0]+dx,b[1]+dy];
+        if(c[0]<0||c[0]>=S||c[1]<0||c[1]>=S||!pass(b,c)) continue;
+        if(dstart.some(d=>d[0]===c[0]&&d[1]===c[1])||bases.some(bb=>bb[0]===c[0]&&bb[1]===c[1])) continue;
+        dstart.push(c); break; }
+    }
+    if(dstart.length<3) continue;
+    const h=[],v=[];
+    for(const k of walls){ const [x,y]=px(k); (k[0]==="h"?h:v).push([x,y]); }
+    const so=(a,b)=>a[0]-b[0]||a[1]-b[1];
+    return {id:"random",name:"ランダム",desc:"この対局のために組まれた盤",
+            bases,dstart,h:h.sort(so),v:v.sort(so)};
+  }
+  return JSON.parse(JSON.stringify(MAPS[1]));   // 生成できなければ固定1
+}
+function resolveMap(x){
+  const m=(typeof x==="string")?MAPS.find(mm=>mm.id===x):x;
+  if(!m) return JSON.parse(JSON.stringify(MAPS[1]));
+  return m.random ? genMap() : JSON.parse(JSON.stringify(m));
+}
+const key=(x,y)=>x+","+y, inB=(x,y)=>x>=0&&x<N&&y>=0&&y<N;
+const ORTHO=[[0,-1],[1,0],[0,1],[-1,0]];
+const DIAG=[[1,-1],[1,1],[-1,1],[-1,-1]];
+const r1=v=>Math.round(v*10)/10;
+let RSEED=1;
+function rnd(){ RSEED=(Math.imul(RSEED,1664525)+1013904223)>>>0; return RSEED/4294967296; }
+
+let G=null;
+
+/* ================= 壁 ================= */
+function wallAt(x,y,nx,ny){
+  const m=G.map;
+  if(nx===x&&ny===y+1) return m.h.some(w=>w[0]===x&&w[1]===y);
+  if(nx===x&&ny===y-1) return m.h.some(w=>w[0]===x&&w[1]===y-1);
+  if(ny===y&&nx===x+1) return m.v.some(w=>w[0]===x&&w[1]===y);
+  if(ny===y&&nx===x-1) return m.v.some(w=>w[0]===x-1&&w[1]===y);
+  return false;
+}
+// 短縮に隣接する辺は「その駒以外の味方」が通れる。短縮自身は自分の扉を使えない
+function wallMove(p,x,y,nx,ny){
+  if(!wallAt(x,y,nx,ny)) return false;
+  for(const q of alive()) if(q.side===p.side&&q.id!==p.id&&has(q,"TAN")&&
+    ((q.x===x&&q.y===y)||(q.x===nx&&q.y===ny))) return false;
+  return true;
+}
+function blockedStep(x,y,nx,ny){
+  const dx=nx-x,dy=ny-y;
+  if(dx===0||dy===0) return wallAt(x,y,nx,ny);
+  return wallAt(x,y,x+dx,y)||wallAt(x+dx,y,nx,ny)||wallAt(x,y,x,y+dy)||wallAt(x,y+dy,nx,ny);
+}
+
+/* ================= 駒 ================= */
+function has(p,s){ return p.sk.indexOf(s)>=0; }
+function alive(){ return G.pieces.filter(p=>p.alive); }
+function sideOf(s){ return alive().filter(p=>p.side===s); }
+function at(x,y){ return alive().find(p=>p.x===x&&p.y===y)||null; }
+function sightOf(p){ return 2+(has(p,"TOM")?2:0); }
+function moveOf(p){ return 3+(has(p,"SHK")?1:0); }
+function rezLeft(p){ return RESPAWN-(G.turn-p.dead); }
+function rezNow(side){ return G.pieces.filter(p=>p.side===side&&!p.alive&&rezLeft(p)<=0); }
+function rezSpots(p){
+  const out=[], push=(x,y)=>{ if(inB(x,y)&&!at(x,y)&&!out.some(c=>c[0]===x&&c[1]===y)) out.push([x,y]); };
+  if(p.side===D){
+    for(const b of G.bases) if(!b.owner) for(const [dx,dy] of ORTHO.concat(DIAG)) push(b.x+dx,b.y+dy);
+  }else{
+    for(let x=0;x<N;x++) push(x,N-1);
+  }
+  return out;
+}
+
+function sightCells(p){                     // その駒が見えるマス [x,y,距離]
+  const out=[], d=sightOf(p);
+  for(const [dx,dy] of ORTHO){
+    let cx=p.x,cy=p.y;
+    for(let i=1;i<=d;i++){
+      const nx=cx+dx,ny=cy+dy;
+      if(!inB(nx,ny)||wallAt(cx,cy,nx,ny)) break;
+      out.push([nx,ny,i]); cx=nx; cy=ny;
+    }
+  }
+  for(const [dx,dy] of DIAG){               // 斜めは1マスだけ。隔てる壁が1つでもあれば見えない
+    const nx=p.x+dx,ny=p.y+dy;
+    if(inB(nx,ny)&&!blockedStep(p.x,p.y,nx,ny)) out.push([nx,ny,1]);
+  }
+  return out;
+}
+function visibleSet(side){
+  const v=new Set();
+  for(const p of sideOf(side)){
+    v.add(key(p.x,p.y));
+    for(const [x,y] of sightCells(p)) v.add(key(x,y));
+  }
+  return v;
+}
+function reachable(p, vis){
+  const v = vis || visibleSet(p.side);
+  const blocks=(x,y)=>{ const o=at(x,y); return !!o && o.side!==p.side && v.has(key(x,y)); }; // 見えている敵だけが塞ぐ
+  const out=[], seen=new Set();
+  const add=(x,y)=>{const k=key(x,y); if(!seen.has(k)){seen.add(k); out.push([x,y]);}};
+  if(has(p,"ONM")) add(p.x,p.y);
+  const maxd=moveOf(p);
+  if(has(p,"SHK")){
+    seen.add(key(p.x,p.y));
+    let fr=[[p.x,p.y]];
+    for(let step=0; step<maxd; step++){
+      const nx2=[];
+      for(const [cx,cy] of fr) for(const [dx,dy] of ORTHO){
+        const nx=cx+dx, ny=cy+dy;
+        if(!inB(nx,ny)||wallMove(p,cx,cy,nx,ny)||seen.has(key(nx,ny))||blocks(nx,ny)) continue;
+        add(nx,ny); nx2.push([nx,ny]);
+      }
+      fr=nx2;
+    }
+    if(!has(p,"ONM")){ const i=out.findIndex(([x,y])=>x===p.x&&y===p.y); if(i>=0) out.splice(i,1); }
+  }else{
+    for(const [dx,dy] of ORTHO){
+      let cx=p.x,cy=p.y;
+      for(let i=0;i<maxd;i++){
+        const nx=cx+dx,ny=cy+dy;
+        if(!inB(nx,ny)||wallMove(p,cx,cy,nx,ny)||blocks(nx,ny)) break;
+        add(nx,ny); cx=nx; cy=ny;
+      }
+    }
+  }
+  if(!out.length) out.push([p.x,p.y]);
+  return out;
+}
+// 命令された移動先までの経路（1マスずつ）。疾駆は曲がれるので幅優先で最短路を採る
+function movePath(p,dest){
+  const [tx,ty]=dest;
+  if(tx===p.x&&ty===p.y) return [[p.x,p.y]];
+  if(has(p,"SHK")){
+    const prev=new Map([[key(p.x,p.y),null]]);
+    let fr=[[p.x,p.y]];
+    for(let step=0; step<moveOf(p); step++){
+      const nx2=[];
+      for(const [cx,cy] of fr) for(const [dx,dy] of ORTHO){
+        const nx=cx+dx, ny=cy+dy, k=key(nx,ny);
+        if(!inB(nx,ny)||wallMove(p,cx,cy,nx,ny)||prev.has(k)) continue;
+        prev.set(k,[cx,cy]); nx2.push([nx,ny]);
+        if(nx===tx&&ny===ty){
+          const path=[]; let c=[tx,ty];
+          while(c){ path.unshift(c); c=prev.get(key(c[0],c[1])); }
+          return path;
+        }
+      }
+      fr=nx2;
+    }
+    return [[p.x,p.y]];
+  }
+  const dx=Math.sign(tx-p.x), dy=Math.sign(ty-p.y);
+  const steps=Math.max(Math.abs(tx-p.x),Math.abs(ty-p.y));
+  const path=[[p.x,p.y]];
+  let cx=p.x, cy=p.y;
+  for(let i=0;i<steps;i++){
+    const nx=cx+dx, ny=cy+dy;
+    if(!inB(nx,ny)||wallMove(p,cx,cy,nx,ny)) break;
+    path.push([nx,ny]); cx=nx; cy=ny;
+  }
+  return path;
+}
+
+/* ================= 初期化 ================= */
+function randomBuild(){
+  const a=SKIDS[Math.floor(Math.random()*SKIDS.length)];
+  let b=a; while(b===a) b=SKIDS[Math.floor(Math.random()*SKIDS.length)];
+  return [a,b];
+}
+function newGame(mapArg,mySide,mode,myBuilds,myPlaces){
+  const map=resolveMap(mapArg);
+  const pieces=[]; let id=0;
+  const mk=(side,pos,sk)=>pos.forEach(([x,y],i)=>pieces.push({
+    id:id++, side, x, y, hp:3, sk:sk[i]||randomBuild(), alive:true, dead:0, home:[x,y]
+  }));
+  mk(A,START_A, mySide===A?myBuilds:START_A.map(randomBuild));
+  const posD=(mySide===D&&myPlaces&&myPlaces.length===DEF_N)?myPlaces:map.dstart;
+  mk(D,posD, mySide===D?myBuilds:posD.map(randomBuild));
+  return {
+    map, mode, mySide, pieces, turn:1,
+    bases:map.bases.map(([x,y])=>({x,y,owner:null,pending:false})),
+    killsOnA:0, killLimit:NEED_KILL, turnLimit:MAXTURN, seed:(Math.random()*4294967296)>>>0,
+    orders:{}, entering:null, sel:null, log:[], over:null, lastEvents:[]
+  };
+}
+
+function newGameBoth(mapArg,aBuilds,dBuilds,dPlaces){
+  const map=(typeof mapArg==="string")?resolveMap(mapArg):mapArg;
+  const pieces=[]; let id=0;
+  const mk=(side,pos,sk)=>pos.forEach(([x,y],i)=>pieces.push({
+    id:id++, side, x, y, hp:3, sk:sk[i], alive:true, dead:0, home:[x,y]}));
+  mk(A,START_A,aBuilds);
+  const posD=(dPlaces&&dPlaces.length===DEF_N)?dPlaces:map.dstart;
+  mk(D,posD,dBuilds);
+  return {pieces, bases:map.bases.map(([x,y])=>({x,y,owner:null,pending:false}))};
+}
+function onlineGame(mapArg,seed,pieces,bases,mySide){
+  const map=(typeof mapArg==="string")?resolveMap(mapArg):JSON.parse(JSON.stringify(mapArg));
+  return { map, mode:"online", mySide, pieces, turn:1, bases, seed,
+    killsOnA:0, killLimit:NEED_KILL, turnLimit:MAXTURN,
+    orders:{}, entering:mySide, sel:null, log:[], over:null, lastEvents:[] };
+}
+
+/* ================= ターン解決 ================= */
+function resolveMovement(orders){
+  const ps=alive();
+  const path=new Map(), idx=new Map();
+  for(const p of ps){
+    const pt=movePath(p, orders[p.id]||[p.x,p.y]);
+    path.set(p.id,pt); idx.set(p.id,pt.length-1);
+  }
+  const posOf=p=>path.get(p.id)[idx.get(p.id)];
+  const back=p=>{ if(idx.get(p.id)>0){ idx.set(p.id,idx.get(p.id)-1); return true; } return false; };
+  for(let it=0; it<24; it++){
+    let changed=false;
+    // 同じマスを取り合ったら、双方1マス手前へ下がる
+    const bucket=new Map();
+    for(const p of ps){ const c=posOf(p), k=key(c[0],c[1]); if(!bucket.has(k)) bucket.set(k,[]); bucket.get(k).push(p); }
+    for(const [,arr] of bucket) if(arr.length>1) for(const p of arr) if(back(p)) changed=true;
+    // 経路の途中に「そこで止まる駒」がいたら、その手前で止まる
+    const occ=new Map();
+    for(const p of ps){ const c=posOf(p); occ.set(key(c[0],c[1]), p.id); }
+    for(const p of ps){
+      const pt=path.get(p.id);
+      for(let i=1;i<=idx.get(p.id);i++){
+        const k=key(pt[i][0],pt[i][1]), o=occ.get(k);
+        if(o!==undefined&&o!==p.id){ if(idx.get(p.id)>i-1){ idx.set(p.id,i-1); changed=true; } break; }
+      }
+    }
+    // すれ違いは成立しない
+    for(let i=0;i<ps.length;i++) for(let j=i+1;j<ps.length;j++){
+      const a=ps[i], b=ps[j];
+      const ca=posOf(a), cb=posOf(b), ha=path.get(a.id)[0], hb=path.get(b.id)[0];
+      if(ca[0]===hb[0]&&ca[1]===hb[1]&&cb[0]===ha[0]&&cb[1]===ha[1]){
+        if(back(a)) changed=true;
+        if(back(b)) changed=true;
+      }
+    }
+    if(!changed) break;
+  }
+  for(const p of ps){ const c=posOf(p); p.x=c[0]; p.y=c[1]; }
+}
+
+// 周囲8マスにいる敵の揺動。いれば必ずそれを狙わされる
+function taunterFor(p){
+  const t=alive().filter(q=>q.side!==p.side&&has(q,"YOU")&&
+    Math.abs(q.x-p.x)<=1&&Math.abs(q.y-p.y)<=1);
+  if(!t.length) return null;
+  t.sort((a,b)=>a.hp-b.hp||a.id-b.id);
+  return t[0];
+}
+function adjacentEnemies(p){
+  const out=[];
+  for(const [dx,dy] of ORTHO){
+    const nx=p.x+dx, ny=p.y+dy;
+    if(!inB(nx,ny)||wallAt(p.x,p.y,nx,ny)) continue;
+    const q=at(nx,ny);
+    if(q&&q.side!==p.side) out.push(q);
+  }
+  return out;
+}
+
+function resolveTurn(ordersA,ordersD){
+  RSEED=((G.seed||1)+Math.imul(G.turn,2654435761))>>>0;
+  const ev=[];
+  const orders=Object.assign({},ordersA,ordersD);
+  resolveMovement(orders);
+
+  const dmg=new Map(), heal=new Map(), atkBuff=new Map();
+  const addD=(p,n)=>dmg.set(p.id,(dmg.get(p.id)||0)+n);
+  const addH=(p,n)=>heal.set(p.id,(heal.get(p.id)||0)+n);
+
+  // スキル①→②
+  for(const slot of [0,1]){
+    for(const p of alive()){
+      const s=p.sk[slot]; if(!s||SK[s].k!=="行動") continue;
+      if(s==="SHG"){
+        let best=null;
+        const tt=taunterFor(p);
+        if(tt){                                  // 揺動に狙いを吸われる
+          const c=sightCells(p).find(([x,y])=>x===tt.x&&y===tt.y);
+          if(!c) ev.push({t:"miss",x:tt.x,y:tt.y,sx:p.x,sy:p.y,by:p.side});
+          else{
+            const acc=Math.max(0,1-(c[2]-1)*0.2);
+            if(rnd()<acc){ addD(tt,1); ev.push({t:"shot",x:tt.x,y:tt.y,sx:p.x,sy:p.y,by:p.side}); }
+            else ev.push({t:"miss",x:tt.x,y:tt.y,sx:p.x,sy:p.y,by:p.side});
+          }
+          continue;
+        }
+        for(const [x,y,dist] of sightCells(p)){
+          const q=at(x,y);
+          if(!q||q.side===p.side) continue;
+          const acc=Math.max(0,1-(dist-1)*0.2);
+          if(!best||acc>best.acc||(acc===best.acc&&q.hp<best.q.hp)) best={q,acc};
+        }
+        if(best){
+          if(rnd()<best.acc){ addD(best.q,1); ev.push({t:"shot",x:best.q.x,y:best.q.y,sx:p.x,sy:p.y,by:p.side}); }
+          else ev.push({t:"miss",x:best.q.x,y:best.q.y,sx:p.x,sy:p.y,by:p.side});
+        }
+            }else if(s==="CHI"){
+        let best=null;
+        for(const [dx,dy] of ORTHO){
+          const nx=p.x+dx,ny=p.y+dy;
+          if(!inB(nx,ny)||wallAt(p.x,p.y,nx,ny)) continue;
+          const q=at(nx,ny);
+          if(q&&q.side===p.side&&q.hp<3&&(!best||q.hp<best.hp)) best=q;
+        }
+        if(best){ addH(best,1); ev.push({t:"heal",x:best.x,y:best.y}); }
+      }else if(s==="KOB"){
+        for(const [dx,dy] of ORTHO){
+          const nx=p.x+dx,ny=p.y+dy;
+          if(!inB(nx,ny)||wallAt(p.x,p.y,nx,ny)) continue;
+          const q=at(nx,ny);
+          if(q&&q.side===p.side) atkBuff.set(q.id,(atkBuff.get(q.id)||0)+1);
+        }
+      }
+    }
+  }
+  // 通常攻撃（隣接する敵のうちHP最小へ。揺動がいればそれを狙わされる）
+  const atks=[];
+  for(const p of alive()){
+    const power=1+(has(p,"GOW")?0.5:0)+(atkBuff.get(p.id)||0);
+    const tt=taunterFor(p);
+    if(tt){
+      if(!adjacentEnemies(p).some(q=>q.id===tt.id)){
+        ev.push({t:"miss",x:tt.x,y:tt.y,sx:p.x,sy:p.y,by:p.side});   // 射程外なので空振り
+        continue;
+      }
+      atks.push({p,t:tt,power}); continue;
+    }
+    const foes=adjacentEnemies(p);
+    if(!foes.length) continue;
+    foes.sort((a,b)=>a.hp-b.hp||a.id-b.id);
+    atks.push({p,t:foes[0],power});
+  }
+  // 連携：同じ相手を味方も殴っていれば、もう一度だけ
+  const cnt=new Map();
+  for(const a of atks) cnt.set(a.t.id,(cnt.get(a.t.id)||0)+1);
+  const all=atks.concat(atks.filter(a=>has(a.p,"REN")&&cnt.get(a.t.id)>1));
+  for(const a of all){
+    addD(a.t,a.power);
+    ev.push({t:"hit",x:a.t.x,y:a.t.y,by:a.p.side,n:a.power});
+    if(has(a.t,"HAN")) addD(a.p,1);
+  }
+  // 一括適用
+  const hurt=new Set();
+  for(const p of alive()){
+    const d=dmg.get(p.id)||0;
+    if(d>0){ hurt.add(p.id); p.hp=r1(p.hp-d); }
+    const h=heal.get(p.id)||0;
+    if(h) p.hp=Math.min(3,r1(p.hp+h));
+  }
+  // 撃破
+  for(const p of alive().slice()){
+    if(p.hp<=0){
+      p.alive=false; p.dead=G.turn;
+      ev.push({t:"kill",x:p.x,y:p.y,side:p.side,g:SK[p.sk[0]].g+SK[p.sk[1]].g});
+      if(p.side===A) G.killsOnA++;
+    }
+  }
+  // 自然回復
+  for(const p of alive()) if(!hurt.has(p.id)) p.hp=Math.min(3,r1(p.hp+1));
+
+  // 砦：攻め側が乗って1巡耐えたら制圧
+  for(const b of G.bases){
+    if(b.owner) continue;
+    const occ=at(b.x,b.y);
+    if(occ&&occ.side===A){
+      if(b.pending){
+        b.owner=A; ev.push({t:"base",x:b.x,y:b.y});
+        G.killLimit+=BONUS_KILL; G.turnLimit+=BONUS_TURN;   // 落とすたびに残基とターンが増える
+      }
+      else b.pending=true;
+    }else b.pending=false;
+  }
+  // 復帰（場所はプレイヤーが選べる。未指定なら自動）
+  const usedSpots=new Set();
+  for(const p of G.pieces){
+    if(p.alive||G.turn-p.dead<RESPAWN) continue;
+    const spots=rezSpots(p).filter(c=>!usedSpots.has(key(c[0],c[1])));
+    const want=orders[p.id];
+    let spot=null;
+    if(want&&spots.some(c=>c[0]===want[0]&&c[1]===want[1])) spot=want;
+    if(!spot&&p.side===D&&spots.length){
+      const load=b=>sideOf(D).filter(q=>Math.abs(q.x-b.x)+Math.abs(q.y-b.y)<=2).length;
+      const open=G.bases.filter(b=>!b.owner).slice().sort((a,b)=>load(a)-load(b)||a.y-b.y);
+      for(const b of open){ const c=spots.find(c=>Math.abs(c[0]-b.x)<=1&&Math.abs(c[1]-b.y)<=1); if(c){spot=c;break;} }
+    }
+    if(!spot&&spots.length) spot=spots[0];
+    if(spot){
+      p.x=spot[0]; p.y=spot[1]; p.hp=3; p.alive=true;
+      usedSpots.add(key(spot[0],spot[1]));
+      ev.push({t:"back",x:spot[0],y:spot[1],side:p.side});
+    }
+  }
+  // 勝敗
+  const taken=G.bases.filter(b=>b.owner===A).length;
+  if(taken>=NEED_BASE) G.over={winner:A,reason:"砦を"+taken+"つ制圧した"};
+  else if(G.killsOnA>=NEED_KILL) G.over={winner:D,reason:"攻め手を"+G.killsOnA+"体撃破した"};
+  else if(G.turn>=MAXTURN) G.over={winner:D,reason:"守り切った（"+MAXTURN+"ターン経過）"};
+  G.lastEvents=ev; G.turn++;
+  return ev;
+}
+
+/* ================= CPU ================= */
+function cpuOrders(side){
+  const o={}, foeSide=side===A?D:A;
+  const vis=visibleSet(side);
+  const foes=sideOf(foeSide).filter(q=>vis.has(key(q.x,q.y)));
+  const open=G.bases.filter(b=>!b.owner);
+  const taken=new Set();
+  for(const p of sideOf(side)){
+    let best=null,bs=-1e9;
+    for(const [x,y] of reachable(p)){
+      if(taken.has(key(x,y))) continue;
+      let s=Math.random()*0.6;
+      const near=foes.length?Math.min(...foes.map(q=>Math.abs(q.x-x)+Math.abs(q.y-y))):99;
+      if(side===A){
+        const bd=open.length?Math.min(...open.map(b=>Math.abs(b.x-x)+Math.abs(b.y-y))):99;
+        s+=(20-bd)*2.2;
+        const adjFoes=foes.filter(q=>Math.abs(q.x-x)+Math.abs(q.y-y)===1).length;
+        // 張り付かれた砦に乗っても即死するだけなので、まず守りを剥がす
+        if(open.some(b=>b.x===x&&b.y===y)) s += 34 - adjFoes*15;
+        const tgt=open.length?open.reduce((mm,b)=>{const d=Math.abs(b.x-p.x)+Math.abs(b.y-p.y);return d<mm.d?{b,d}:mm;},{b:null,d:99}).b:null;
+        if(tgt){
+          const guards=foes.filter(q=>Math.abs(q.x-tgt.x)<=1&&Math.abs(q.y-tgt.y)<=1);
+          if(guards.some(q=>Math.abs(q.x-x)+Math.abs(q.y-y)===1)) s+=16;   // 番兵を優先して殴る
+        }
+        if(p.hp<=1) s+= near*2.2; else if(near===1) s+=6;
+        if(p.hp<=1 && near<=1) s-=14;
+      }else{
+        const intr=foes.filter(q=>q.y<=4);
+        const tgt=intr.length?intr:foes;
+        const nd=tgt.length?Math.min(...tgt.map(q=>Math.abs(q.x-x)+Math.abs(q.y-y))):99;
+        s+=(20-nd)*2.4;
+        if(nd===1) s+=10;
+        const bd=Math.min(...G.bases.filter(b=>!b.owner).map(b=>Math.abs(b.x-x)+Math.abs(b.y-y)).concat([9]));
+        s+=(9-bd)*1.1;
+        if(p.hp<=1 && nd<=1) s-=10;
+      }
+      if(s>bs){bs=s;best=[x,y];}
+    }
+    if(best){ o[p.id]=best; taken.add(key(best[0],best[1])); }
+  }
+  return o;
+}
+
+/* ================= 効果音 ================= */
+let AC=null, SND=true, NB=null;
+function ac(){
+  if(AC===null){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=false; } }
+  if(AC&&AC.state==="suspended") AC.resume();
+  return AC||null;
+}
+function tone(o){
+  const c=ac(); if(!c||!SND) return;
+  const t0=c.currentTime+(o.at||0), d=o.d||0.12;
+  const g=c.createGain(); g.connect(c.destination);
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(o.g||0.12,t0+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+  const s=c.createOscillator(); s.type=o.type||"sine";
+  s.frequency.setValueAtTime(o.f,t0);
+  if(o.f2) s.frequency.exponentialRampToValueAtTime(o.f2,t0+d);
+  s.connect(g); s.start(t0); s.stop(t0+d+0.02);
+}
+function noise(o){
+  const c=ac(); if(!c||!SND) return;
+  if(!NB){ const n=Math.floor(c.sampleRate*0.5); NB=c.createBuffer(1,n,c.sampleRate);
+    const dd=NB.getChannelData(0); for(let i=0;i<n;i++) dd[i]=Math.random()*2-1; }
+  const t0=c.currentTime+(o.at||0), d=o.d||0.15;
+  const src=c.createBufferSource(); src.buffer=NB;
+  const f=c.createBiquadFilter(); f.type=o.filter||"bandpass"; f.Q.value=o.q||1.2;
+  f.frequency.setValueAtTime(o.f||800,t0);
+  if(o.f2) f.frequency.exponentialRampToValueAtTime(o.f2,t0+d);
+  const g=c.createGain();
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(o.g||0.1,t0+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+  src.connect(f); f.connect(g); g.connect(c.destination);
+  src.start(t0); src.stop(t0+d+0.02);
+}
+const SE={
+  tap:  ()=>tone({f:520,f2:680,d:.06,g:.07,type:"triangle"}),
+  order:()=>{tone({f:460,d:.05,g:.08,type:"triangle"});tone({f:690,d:.07,g:.07,at:.05,type:"triangle"});},
+  off:  ()=>tone({f:420,f2:250,d:.08,g:.06,type:"triangle"}),
+  step: a=>noise({f:1500,f2:480,d:.16,g:.06,at:a}),
+  hit:  a=>{tone({f:180,f2:70,d:.14,g:.17,type:"square",at:a});noise({f:2400,f2:600,d:.09,g:.07,at:a});},
+  shot: a=>tone({f:1400,f2:360,d:.1,g:.1,type:"sawtooth",at:a}),
+  miss: a=>noise({f:2800,f2:1500,d:.11,g:.05,at:a,filter:"highpass"}),
+  heal: a=>{tone({f:620,d:.09,g:.07,at:a});tone({f:930,d:.12,g:.06,at:a+.07});},
+  kill: a=>{tone({f:300,f2:60,d:.42,g:.19,type:"square",at:a});noise({f:900,f2:140,d:.36,g:.11,at:a});},
+  base: a=>[523,659,784].forEach((f,i)=>tone({f,d:.36,g:.09,type:"triangle",at:a+i*.09})),
+  back: a=>tone({f:300,f2:640,d:.2,g:.08,type:"triangle",at:a}),
+  win:  ()=>[523,659,784,1046].forEach((f,i)=>tone({f,d:.5,g:.11,type:"triangle",at:i*.11})),
+  lose: ()=>[440,392,330,262].forEach((f,i)=>tone({f,d:.55,g:.11,type:"triangle",at:i*.13}))
+};
+let fxBusy=false;
+function fxAt(x,y,html,ms,cls){
+  const L=document.getElementById("fx"); if(!L) return;
+  const [ax,ay]=dxy(x,y);
+  const e=document.createElement("div");
+  e.className="fxc"+(cls?" "+cls:"");
+  e.style.left=(ax*100/9)+"%"; e.style.top=(ay*100/9)+"%";
+  e.innerHTML=html; L.appendChild(e);
+  setTimeout(()=>e.remove(), ms);
+}
+function fxHit(x,y,heavy){
+  if(heavy){
+    const spikes=[0,45,90,135,180,225,270,315].map(a=>`<span class="sp" style="--a:${a}deg"></span>`).join("");
+    fxAt(x,y,`<span class="rg"></span><span class="rg2"></span>${spikes}<span class="sl"></span><span class="sl b"></span>`,700,"hv");
+  }else{
+    fxAt(x,y,`<span class="rg"></span><span class="sl"></span>`,460);
+  }
+}
+function fxKill(x,y,g){
+  const sh=Array.from({length:9},(_,i)=>{
+    const a=i/9*Math.PI*2, r=24+Math.random()*14;
+    return `<span class="sh" style="--dx:${(Math.cos(a)*r).toFixed(1)}px;--dy:${(Math.sin(a)*r).toFixed(1)}px"></span>`;
+  }).join("");
+  fxAt(x,y,`<span class="kb"></span>${sh}<span class="kg">${g||""}</span>`,900);
+}
+function fxHeal(x,y){ fxAt(x,y,`<span class="hl"></span>`,540); }
+function fxBeam(x1,y1,x2,y2,miss){
+  const L=document.getElementById("fx"); if(!L) return;
+  const [a1,b1]=dxy(x1,y1), [a2,b2]=dxy(x2,y2);
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox","0 0 100 100"); svg.setAttribute("preserveAspectRatio","none");
+  svg.setAttribute("class","beam"+(miss?" mi":""));
+  svg.innerHTML=`<line x1="${((a1+.5)*100/9).toFixed(2)}" y1="${((b1+.5)*100/9).toFixed(2)}" x2="${((a2+.5)*100/9).toFixed(2)}" y2="${((b2+.5)*100/9).toFixed(2)}"/>`;
+  L.appendChild(svg); setTimeout(()=>svg.remove(), 460);
+}
+// 1ターン分の音と演出を時間軸に並べる。戻り値は全体の長さ(ms)
+function playTurn(ev,viewer){
+  const vis=visibleSet(viewer);
+  const seen=e=>G.over||vis.has(key(e.x,e.y));
+  const later=(sec,fn)=>setTimeout(fn,Math.round(sec*1000));
+  if(SND) SE.step(0);
+  let t=0.16;
+  for(const e of ev){
+    if(!seen(e)) continue;
+    if(e.t==="hit"){
+      const heavy=(e.n||1)>=1.5, tt=t;
+      if(SND) SE.hit(tt);
+      later(tt,()=>fxHit(e.x,e.y,heavy));
+      t+=heavy?0.13:0.1;                       // 強打はひと呼吸長く見せる
+    }else if(e.t==="shot"){
+      const tt=t; if(SND) SE.shot(tt);
+      later(tt,()=>{ if(e.sx!==undefined) fxBeam(e.sx,e.sy,e.x,e.y); fxHit(e.x,e.y,false); });
+      t+=0.1;
+    }else if(e.t==="miss"){
+      const tt=t; if(SND) SE.miss(tt);
+      later(tt,()=>{ if(e.sx!==undefined) fxBeam(e.sx,e.sy,e.x,e.y,true); });
+      t+=0.08;
+    }else if(e.t==="heal"){
+      const tt=t; if(SND) SE.heal(tt);
+      later(tt,()=>fxHeal(e.x,e.y));
+      t+=0.07;
+    }
+  }
+  const kills=ev.filter(e=>e.t==="kill");
+  if(kills.length){
+    const tt=t+0.1;
+    if(SND) SE.kill(tt);
+    kills.forEach((e,i)=>later(tt+i*0.12,()=>fxKill(e.x,e.y,e.g)));
+    t=tt+kills.length*0.12+0.5;
+  }
+  if(ev.some(e=>e.t==="base")){ if(SND) SE.base(t+0.1); t+=0.5; }
+  if(ev.some(e=>e.t==="back"&&seen(e))){ if(SND) SE.back(t+0.1); t+=0.25; }
+  const total=Math.round((t+0.25)*1000);
+  fxBusy=true;
+  setTimeout(()=>{ fxBusy=false; if(G&&G.over) showResult(); }, total);
+  return total;
+}
+
+/* ================= 通信（P2P） ================= */
+const NET={peer:null,conn:null,role:null,code:"",status:"",
+  mine:{},theirs:{},myArmy:null,theirArmy:null,setup:null,sent:false};
+function netReset(){
+  try{NET.conn&&NET.conn.close();}catch(e){}
+  try{NET.peer&&NET.peer.destroy();}catch(e){}
+  Object.assign(NET,{peer:null,conn:null,role:null,code:"",status:"",
+    mine:{},theirs:{},myArmy:null,theirArmy:null,setup:null,sent:false});
+}
+function netSend(m){ try{ if(NET.conn&&NET.conn.open) NET.conn.send(m); }catch(e){} }
+function roomCode(){ const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let r="";
+  for(let i=0;i<4;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; }
+function peerId(code){ return "rojosen-2026-"+code.toUpperCase(); }
+function hasPeer(){ return typeof Peer!=="undefined"; }
+
+function netHost(){
+  if(!hasPeer()){ NET.status="通信ライブラリを読み込めませんでした。ネットにつないでから開いてください。"; renderRoom(); return; }
+  netReset(); NET.role="host"; NET.code=roomCode(); NET.status="部屋を用意しています…"; renderRoom();
+  NET.peer=new Peer(peerId(NET.code));
+  NET.peer.on("open",()=>{ NET.status="合言葉を相手に伝えてください。参加を待っています。"; renderRoom(); });
+  NET.peer.on("error",e=>{ NET.status="接続できませんでした（"+e.type+"）。もう一度お試しください。"; renderRoom(); });
+  NET.peer.on("connection",c=>{ if(NET.conn){ try{c.close();}catch(e){} return; } NET.conn=c; bindConn(); });
+}
+function netJoin(code){
+  if(!hasPeer()){ NET.status="通信ライブラリを読み込めませんでした。"; renderRoom(); return; }
+  netReset(); NET.role="guest"; NET.code=code; NET.status="接続しています…"; renderRoom();
+  NET.peer=new Peer();
+  NET.peer.on("open",()=>{ NET.conn=NET.peer.connect(peerId(code),{reliable:true}); bindConn(); });
+  NET.peer.on("error",e=>{ NET.status="部屋が見つかりませんでした（"+e.type+"）。合言葉を確かめてください。"; renderRoom(); });
+}
+function bindConn(){
+  const c=NET.conn;
+  c.on("open",()=>{
+    NET.status="つながりました。";
+    if(NET.role==="host"){
+      if(!ui.mapObj) ui.mapObj=resolveMap(ui.mapId);
+      NET.setup={map:ui.mapObj,hostSide:ui.side,seed:(Math.random()*4294967296)>>>0};
+      netSend({t:"setup",map:NET.setup.map,hostSide:NET.setup.hostSide,seed:NET.setup.seed});
+      startBuild(ui.side);
+    }
+  });
+  c.on("data",netRecv);
+  c.on("close",netLost);
+  c.on("error",netLost);
+}
+function netLost(){
+  if(!NET.peer) return;
+  netReset();
+  openOv(`<h3>接続が切れました</h3><p>相手との通信が途切れました。</p>
+    <div class="row"><button class="pri" id="ok">タイトルへ</button></div>`);
+  document.getElementById("ok").onclick=()=>{closeOv();renderTitle();};
+}
+function netRecv(m){
+  if(!m||!m.t) return;
+  if(m.t==="setup"){ NET.setup=m; ui.mapObj=m.map; ui.mapId=m.map.id; startBuild(m.hostSide===A?D:A); }
+  else if(m.t==="army"){ NET.theirArmy=m; netTryStart(); }
+  else if(m.t==="start"){ applyStart(m); }
+  else if(m.t==="orders"){ NET.theirs[m.turn]=m.orders; netTryResolve(); }
+  else if(m.t==="state"){ applyState(m); }
+}
+function startBuild(side){
+  ui.side=side; ui.places=[];
+  const n=(side===A?START_A.length:DEF_N);
+  ui.builds=Array.from({length:n},()=>[null,null]);
+  renderBuild();
+}
+function netSubmitArmy(){
+  NET.myArmy={t:"army",side:ui.side,builds:ui.builds,places:ui.places.slice()};
+  netSend(NET.myArmy);
+  NET.status="相手の編成を待っています…";
+  renderWait();
+  netTryStart();
+}
+function netTryStart(){
+  if(NET.role!=="host"||!NET.myArmy||!NET.theirArmy||!NET.setup) return;
+  const a=NET.myArmy.side===A?NET.myArmy:NET.theirArmy;
+  const d=NET.myArmy.side===D?NET.myArmy:NET.theirArmy;
+  const g=newGameBoth(NET.setup.map,a.builds,d.builds,d.places);
+  const msg={t:"start",map:NET.setup.map,seed:NET.setup.seed,pieces:g.pieces,bases:g.bases};
+  netSend(msg); applyStart(msg);
+}
+function applyStart(m){
+  G=onlineGame(m.map,m.seed,m.pieces,m.bases,ui.side);
+  NET.mine={}; NET.theirs={}; NET.sent=false;
+  renderGame();
+}
+// 解決はホスト側だけで行う。ゲストは結果を受け取って再生するだけ
+function netTryResolve(){
+  if(NET.role!=="host"||!G||G.mode!=="online"||G.over) return;
+  const t=G.turn;
+  if(!NET.mine[t]||!NET.theirs[t]) return;
+  const oA=G.mySide===A?NET.mine[t]:NET.theirs[t];
+  const oD=G.mySide===D?NET.mine[t]:NET.theirs[t];
+  NET.sent=false;
+  finish(oA,oD);
+}
+// ゲスト：ホストが解決した結果を丸ごと受け取る
+function applyState(m){
+  if(!G||G.mode!=="online") return;
+  G.pieces=m.pieces; G.bases=m.bases;
+  G.killsOnA=m.killsOnA; G.killLimit=m.killLimit; G.turnLimit=m.turnLimit;
+  G.turn=m.turn; G.over=m.over||null;
+  G.orders={}; G.sel=null; NET.sent=false;
+  G.log.push({turn:m.turn-1, ev:m.ev});
+  G.entering=G.mySide;
+  renderGame();
+  playTurn(m.ev, G.mySide);
+}
+
+/* ================= 画面 ================= */
+const app=document.getElementById("app"), ov=document.getElementById("ov"), ovcard=document.getElementById("ovcard");
+let ui={mode:"cpu",side:A,mapId:MAPS[0].id,mapObj:null,builds:null,editing:null,places:[]};
+function openOv(h){ovcard.innerHTML=h;ov.hidden=false;}
+function closeOv(){ov.hidden=true;}
+
+function miniMap(m,size){
+  const s=size/9;
+  if(m.random){
+    let r=`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><rect width="${size}" height="${size}" fill="#a89a83"/>`;
+    for(let i=1;i<9;i++) r+=`<path d="M${i*s} 0V${size}M0 ${i*s}H${size}" stroke="#6d604a55" stroke-width=".5"/>`;
+    r+=`<text x="${size/2}" y="${size/2+size*0.17}" text-anchor="middle" font-size="${size*0.5}" fill="#6b5c4b" font-family="serif">?</text>`;
+    return r+"</svg>";
+  }
+  let r=`<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><rect width="${size}" height="${size}" fill="#d9cfb6"/>`;
+  for(let i=1;i<9;i++) r+=`<path d="M${i*s} 0V${size}M0 ${i*s}H${size}" stroke="#a8977055" stroke-width=".5"/>`;
+  for(const [x,y] of m.bases) r+=`<rect x="${x*s+1}" y="${y*s+1}" width="${s-2}" height="${s-2}" fill="none" stroke="#8a7550" stroke-width="1.5"/>`;
+  for(const [x,y] of m.h) r+=`<rect x="${x*s}" y="${(y+1)*s-1}" width="${s}" height="2" fill="#7a6144"/>`;
+  for(const [x,y] of m.v) r+=`<rect x="${(x+1)*s-1}" y="${y*s}" width="2" height="${s}" fill="#7a6144"/>`;
+  return r+"</svg>";
+}
+
+function renderTitle(){
+  app.innerHTML=`
+  <h1 class="t">篭城戦</h1>
+  <p class="lede">城に篭る側と、攻め入る側。<br>灯りの届く範囲しか見えないまま、両者が同時に全駒へ命令を出す。</p>
+  <div class="field"><h2>どちらを持つか</h2>
+    <button class="sidecard" data-s="A" aria-pressed="${ui.side===A}"><b>攻め手</b><span>${START_A.length}駒。三つの砦のうち${NEED_BASE}つを制圧すれば勝ち。残基は${NEED_KILL}だが、砦を落とすたびに${BONUS_KILL}増える。</span></button>
+    <button class="sidecard" data-s="D" aria-pressed="${ui.side===D}"><b>守り手</b><span>${DEF_N}駒。開始前に砦の周囲へ自由に配置できる。攻め手の残基を削り切るか、守り切れば勝ち。</span></button>
+  </div>
+  <div class="field"><h2>対戦相手</h2>
+    <div class="seg" id="modeSeg">
+      <button data-m="cpu" aria-pressed="${ui.mode==="cpu"}">CPU</button>
+      <button data-m="local" aria-pressed="${ui.mode==="local"}">交代</button>
+      <button data-m="online" aria-pressed="${ui.mode==="online"}">オンライン</button>
+    </div>${ui.mode==="online"?'<div class="netst">部屋を作る側が持ち手と戦場を決めます。参加する側は反対の手になります。</div>':""}
+  </div>
+  <div class="field"><h2>戦場</h2>
+    <div id="mapGrid">${MAPS.map(m=>`<button class="sidecard" data-id="${m.id}" aria-pressed="${ui.mapId===m.id}" style="display:flex;gap:11px;align-items:center">
+      ${miniMap(m,46)}<span style="flex:1"><b>${m.name}</b><span>${m.desc}</span></span></button>`).join("")}</div>
+  </div>
+  ${ui.mode==="online"
+    ? `<button class="go" id="host">部屋を作る</button><button class="ghost" id="join">合言葉で参加する</button>`
+    : `<button class="go" id="next">駒を編成する</button>`}
+  <button class="ghost" id="rules">ルールとスキル一覧</button>`;
+  app.querySelectorAll(".sidecard[data-s]").forEach(b=>b.onclick=()=>{ui.side=b.dataset.s;renderTitle();});
+  document.getElementById("modeSeg").onclick=e=>{const b=e.target.closest("button");if(b){ui.mode=b.dataset.m;renderTitle();}};
+  document.getElementById("mapGrid").onclick=e=>{const b=e.target.closest("button");if(b){ui.mapId=b.dataset.id;renderTitle();}};
+  const nx=document.getElementById("next");
+  if(nx) nx.onclick=()=>{
+    ui.mapObj=resolveMap(ui.mapId);
+    const n=ui.side===A?START_A.length:DEF_N;
+    ui.builds=Array.from({length:n},()=>[null,null]); ui.editing=null; ui.places=[]; renderBuild();
+  };
+  const hb=document.getElementById("host"); if(hb) hb.onclick=()=>{ac();ui.mapObj=resolveMap(ui.mapId);netHost();};
+  const jb=document.getElementById("join"); if(jb) jb.onclick=()=>{ac();renderJoin();};
+  document.getElementById("rules").onclick=showRules;
+}
+
+function renderBuild(){
+  const done=ui.builds.every(b=>b[0]&&b[1]);
+  app.innerHTML=`
+  <div class="bar"><div><h1>編成</h1><div class="sub">${ui.side===A?"攻め手":"守り手"} ${ui.builds.length}駒 ・ 各駒にスキルを2つ</div></div>
+    <button class="iconbtn" id="rules">スキル</button></div>
+  <p class="lede" style="margin:0 0 14px">基礎値は移動3マス（縦横）・視界2・HP3・攻撃1。駒は毎ターン必ず動きます。</p>
+  <div id="units">${ui.builds.map((b,i)=>`
+    <div class="unit">
+      <span class="no">${i+1}番</span>
+      ${[0,1].map(s=>`<button class="slot ${b[s]?"on":""}" data-i="${i}" data-s="${s}">
+        ${b[s]?`<b>${SK[b[s]].g} ${SK[b[s]].n}</b>`:"空き"}</button>`).join("")}
+    </div>`).join("")}</div>
+  <div class="actions"><button id="rand">まかせる</button><button id="clear">全部消す</button></div>
+  <button class="go" id="start" ${done?"":"disabled"}>${done?(ui.side===D?"配置へ進む":"出陣する"):"すべての枠を埋めてください"}</button>
+  <button class="ghost" id="back">戻る</button>`;
+  document.getElementById("units").onclick=e=>{
+    const b=e.target.closest(".slot"); if(!b) return;
+    ui.editing=[+b.dataset.i,+b.dataset.s]; showPicker();
+  };
+  document.getElementById("rand").onclick=()=>{ui.builds=ui.builds.map(randomBuild);renderBuild();};
+  document.getElementById("clear").onclick=()=>{ui.builds=ui.builds.map(()=>[null,null]);renderBuild();};
+  document.getElementById("back").onclick=renderTitle;
+  document.getElementById("rules").onclick=showRules;
+  document.getElementById("start").onclick=()=>{
+    if(!done) return;
+    ac();
+    if(ui.side===D){ ui.places=[]; renderPlace(); return; }
+    if(ui.mode==="online"){ netSubmitArmy(); return; }
+    G=newGame(ui.mapObj,ui.side,ui.mode,ui.builds);
+    G.entering=ui.mode==="cpu"?ui.side:A;
+    renderGame();
+  };
+}
+function showPicker(){
+  const [i,s]=ui.editing, other=ui.builds[i][1-s];
+  openOv(`<h3>${i+1}番の駒 スキル${s+1}</h3>
+  <div class="pick">${SKIDS.map(k=>`<button data-k="${k}" ${k===other?"disabled":""}>
+    <b>${SK[k].g} ${SK[k].n}</b><span>${SK[k].d}</span></button>`).join("")}</div>
+  <div class="row"><button id="cancel">やめる</button></div>`);
+  ovcard.querySelector(".pick").onclick=e=>{
+    const b=e.target.closest("button"); if(!b||b.disabled) return;
+    ui.builds[i][s]=b.dataset.k; closeOv(); renderBuild();
+  };
+  document.getElementById("cancel").onclick=closeOv;
+}
+
+/* ---------- オンラインの部屋 ---------- */
+function renderRoom(){
+  app.innerHTML=`
+  <div class="bar"><div><h1>オンライン</h1><div class="sub">${NET.role==="host"?"部屋を作る":"合言葉で参加"}</div></div></div>
+  ${NET.role==="host"&&NET.code?`<div class="codebox"><b>${NET.code}</b><span>この合言葉を相手に伝えてください</span></div>`:""}
+  <div class="netst">${NET.status||""}</div>
+  <button class="ghost" id="cancel">やめてタイトルへ</button>`;
+  document.getElementById("cancel").onclick=()=>{netReset();renderTitle();};
+}
+function renderJoin(){
+  app.innerHTML=`
+  <div class="bar"><div><h1>参加</h1><div class="sub">相手の合言葉を入れてください</div></div></div>
+  <input class="code" id="code" maxlength="4" autocapitalize="characters" autocomplete="off" placeholder="＿＿＿＿">
+  <div class="netst" id="js"></div>
+  <button class="go" id="go">参加する</button>
+  <button class="ghost" id="cancel">戻る</button>`;
+  const inp=document.getElementById("code");
+  inp.focus();
+  document.getElementById("go").onclick=()=>{
+    const v=(inp.value||"").trim().toUpperCase();
+    if(v.length<4){ document.getElementById("js").textContent="合言葉は4文字です。"; return; }
+    netJoin(v);
+  };
+  document.getElementById("cancel").onclick=renderTitle;
+}
+function renderWait(){
+  app.innerHTML=`
+  <div class="bar"><div><h1>編成ずみ</h1><div class="sub">合言葉 ${NET.code}</div></div></div>
+  <p class="lede">${NET.status||"相手を待っています…"}</p>
+  <div class="netst">${ui.side===A?"攻め手":"守り手"}で出陣します。相手の編成が終わり次第、自動で始まります。</div>
+  <button class="ghost" id="cancel">やめてタイトルへ</button>`;
+  document.getElementById("cancel").onclick=()=>{netReset();renderTitle();};
+}
+
+/* ---------- 守り手の初期配置 ---------- */
+function renderPlace(){
+  const map=ui.mapObj;
+  const zone=placeZone(map), zk=new Set(zone.map(c=>c.join(",")));
+  const done=ui.places.length===DEF_N;
+  app.innerHTML=`
+  <div class="bar"><div><h1>配置</h1><div class="sub">${map.name} ・ 砦の周囲9マスなら、どこへ何体でも</div></div>
+    <button class="iconbtn" id="rules">スキル</button></div>
+  <p class="lede" style="margin:0 0 12px">砦は一つに固めても、三方に散らしても構いません。倒された駒の復帰先は、そのとき落ちていない砦の周囲になります。</p>
+  <div class="board" id="board"><div class="walls" id="walls"></div></div>
+  <div class="info" id="pinfo"></div>
+  <div class="actions"><button id="reset">置き直す</button><button id="back">編成へ戻る</button></div>
+  <button class="go" id="start" ${done?"":"disabled"}>${done?"出陣する":`あと${DEF_N-ui.places.length}体を置いてください`}</button>`;
+  const board=document.getElementById("board");
+  const dp=(x,y)=>[8-x,8-y];                     // 守り手視点なので反転
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){
+    const d=document.createElement("div"); d.className="cell"; d.dataset.x=x; d.dataset.y=y;
+    const [ax,ay]=dp(x,y); d.style.left=(ax*100/9)+"%"; d.style.top=(ay*100/9)+"%";
+    if(zk.has(x+","+y)) d.classList.add("mv");
+    board.appendChild(d);
+  }
+  const w=document.getElementById("walls");
+  const put=(cls,l,t)=>{const e=document.createElement("div");e.className="w "+cls;e.style.left=(l*100/9)+"%";e.style.top=(t*100/9)+"%";w.appendChild(e);};
+  map.h.forEach(([x,y])=>{const [ax,ay]=dp(x,y); put("wh",ax,ay);});
+  map.v.forEach(([x,y])=>{const [ax,ay]=dp(x,y); put("wv",ax,ay);});
+  const pts=new Map(), addPt=(px,py)=>{const k=px+","+py; pts.set(k,(pts.get(k)||0)+1);};
+  map.h.forEach(([x,y])=>{addPt(x,y+1);addPt(x+1,y+1);});
+  map.v.forEach(([x,y])=>{addPt(x+1,y);addPt(x+1,y+1);});
+  for(const [k,n] of pts){ if(n<2) continue;
+    const [px,py]=k.split(",").map(Number);
+    const e=document.createElement("div"); e.className="wj";
+    e.style.left=((9-px)*100/9)+"%"; e.style.top=((9-py)*100/9)+"%"; w.appendChild(e); }
+  for(const [bx,by] of map.bases){
+    const e=document.createElement("div"); e.className="base";
+    const [ax,ay]=dp(bx,by); e.style.left=(ax*100/9)+"%"; e.style.top=(ay*100/9)+"%";
+    e.innerHTML="<i>砦</i>"; board.appendChild(e);
+  }
+  ui.places.forEach((c,i)=>{
+    const e=document.createElement("div"); e.className="tok d";
+    const [ax,ay]=dp(c[0],c[1]); e.style.left=(ax*100/9)+"%"; e.style.top=(ay*100/9)+"%";
+    const b=ui.builds[i];
+    e.innerHTML=`<i><span class="g">${SK[b[0]].g}${SK[b[1]].g}</span></i>`;
+    board.appendChild(e);
+  });
+  document.getElementById("pinfo").innerHTML = done
+    ? `${DEF_N}体すべて置きました。駒をもう一度押すと外せます。`
+    : `<b>${ui.places.length+1}番の駒（${SK[ui.builds[ui.places.length][0]].n}・${SK[ui.builds[ui.places.length][1]].n}）</b>を、光っているマスに置いてください。`;
+  board.onclick=e=>{
+    const c=e.target.closest(".cell"); if(!c) return;
+    const x=+c.dataset.x, y=+c.dataset.y;
+    const at=ui.places.findIndex(q=>q[0]===x&&q[1]===y);
+    if(at>=0){ ui.places.splice(at,1); SE.off(); renderPlace(); return; }
+    if(ui.places.length>=DEF_N||!zk.has(x+","+y)) return;
+    ui.places.push([x,y]); SE.tap(); renderPlace();
+  };
+  document.getElementById("reset").onclick=()=>{ui.places=[];SE.off();renderPlace();};
+  document.getElementById("back").onclick=renderBuild;
+  document.getElementById("rules").onclick=showRules;
+  document.getElementById("start").onclick=()=>{
+    if(!done) return;
+    ac(); SE.order();
+    if(ui.mode==="online"){ netSubmitArmy(); return; }
+    G=newGame(ui.mapObj,ui.side,ui.mode,ui.builds,ui.places);
+    G.entering=ui.mode==="cpu"?ui.side:A;
+    renderGame();
+  };
+}
+
+/* ---------- 対局 ---------- */
+function pending(side){ return sideOf(side).concat(rezNow(side)); }
+function view(){ return G.over?G.mySide:(G.mode==="cpu"?G.mySide:G.entering); }
+function flip(){ return view()===D; }
+function dxy(x,y){ return flip()?[8-x,8-y]:[x,y]; }
+
+function renderGame(){
+  const v=view();
+  const taken=G.bases.filter(b=>b.owner===A).length;
+  app.innerHTML=`
+  <div class="bar"><div><h1>篭城戦</h1><div class="sub">${G.map.name} ・ ${G.turn}ターン目 / ${MAXTURN}</div></div>
+    <div style="display:flex;gap:6px"><button class="iconbtn" id="snd"></button><button class="iconbtn" id="rules">スキル</button></div></div>
+  <div class="score">
+    <div class="sc a"><b>${taken} / ${NEED_BASE}</b>落とした砦</div>
+    <div class="sc d"><b>${G.killLimit-G.killsOnA} / ${G.killLimit}</b>攻め手の残基</div>
+    <div class="sc t"><b>${G.turn} / ${G.turnLimit}</b>経過ターン</div>
+  </div>
+  <div class="rez" id="rez"></div>
+  <div class="board" id="board"><div class="walls" id="walls"></div><svg class="arrows" id="arrows" viewBox="0 0 100 100" preserveAspectRatio="none"></svg><div class="fx" id="fx"></div></div>
+  <div class="info" id="info"></div>
+  <div class="actions">
+    <button id="autoFill">残りをまかせる</button>
+    <button id="resolve" class="pri">${G.mode==="online"?"命令を送る":"解決する"}</button>
+    <button id="quit">やめる</button>
+  </div>
+  <div class="log" id="log"></div>`;
+  const board=document.getElementById("board");
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++){
+    const d=document.createElement("div"); d.className="cell"; d.dataset.x=x; d.dataset.y=y;
+    const [ax,ay]=dxy(x,y); d.style.left=(ax*100/9)+"%"; d.style.top=(ay*100/9)+"%";
+    board.appendChild(d);
+  }
+  const w=document.getElementById("walls");
+  const put=(cls,l,t)=>{const e=document.createElement("div");e.className="w "+cls;e.style.left=(l*100/9)+"%";e.style.top=(t*100/9)+"%";w.appendChild(e);};
+  G.map.h.forEach(([x,y])=>{const [ax,ay]=dxy(x,y); put("wh",ax,flip()?ay:ay+1);});
+  G.map.v.forEach(([x,y])=>{const [ax,ay]=dxy(x,y); put("wv",flip()?ax:ax+1,ay);});
+  // 壁が2本以上集まる格子点にキャップを置き、継ぎ目をなくす
+  const pts=new Map(), addPt=(px,py)=>{const k=px+","+py; pts.set(k,(pts.get(k)||0)+1);};
+  G.map.h.forEach(([x,y])=>{addPt(x,y+1); addPt(x+1,y+1);});
+  G.map.v.forEach(([x,y])=>{addPt(x+1,y); addPt(x+1,y+1);});
+  for(const [k,n] of pts){
+    if(n<2) continue;
+    const [px,py]=k.split(",").map(Number);
+    const jx=flip()?9-px:px, jy=flip()?9-py:py;
+    const e=document.createElement("div"); e.className="wj";
+    e.style.left=(jx*100/9)+"%"; e.style.top=(jy*100/9)+"%";
+    w.appendChild(e);
+  }
+  board.onclick=onCell;
+  const sb=document.getElementById("snd");
+  const drawSnd=()=>{sb.textContent=SND?"音 オン":"音 オフ";};
+  drawSnd(); sb.onclick=()=>{SND=!SND; drawSnd(); if(SND){ac();SE.tap();}};
+  document.getElementById("rules").onclick=showRules;
+  document.getElementById("quit").onclick=()=>{ if(confirm("対局をやめてタイトルに戻ります。")){ netReset(); renderTitle(); } };
+  document.getElementById("autoFill").onclick=()=>{
+    const auto=cpuOrders(G.entering), used=new Set();
+    for(const p of sideOf(G.entering)) if(G.orders[p.id]) used.add(key(G.orders[p.id][0],G.orders[p.id][1]));
+    for(const p of sideOf(G.entering)){
+      if(G.orders[p.id]) continue;
+      let d=auto[p.id];
+      if(!d||used.has(key(d[0],d[1]))) d=reachable(p).find(([x,y])=>!used.has(key(x,y)))||[p.x,p.y];
+      G.orders[p.id]=d; used.add(key(d[0],d[1]));
+    }
+    for(const p of rezNow(G.entering)){
+      if(G.orders[p.id]) continue;
+      const d=rezSpots(p).find(([x,y])=>!used.has(key(x,y)));
+      if(d){ G.orders[p.id]=d; used.add(key(d[0],d[1])); }
+    }
+    G.sel=null; SE.order(); paint();
+  };
+  document.getElementById("resolve").onclick=submit;
+  paint();
+}
+
+function paint(){
+  const v=view(), vis=visibleSet(v), me=G.entering;
+  const board=document.getElementById("board");
+  board.querySelectorAll(".tok,.base").forEach(e=>e.remove());
+  const mvSet=new Set();
+  const selP=(G.sel!=null&&!G.over)?G.pieces.find(q=>q.id===G.sel):null;
+  if(selP){
+    const list=selP.alive?reachable(selP):rezSpots(selP);
+    for(const [x,y] of list) mvSet.add(key(x,y));
+  }
+  board.querySelectorAll(".cell").forEach(c=>{
+    const x=+c.dataset.x,y=+c.dataset.y,k=key(x,y);
+    c.className="cell";
+    if(!vis.has(k)&&!G.over) c.classList.add("fog");
+    if(mvSet.has(k)) c.classList.add("mv");
+    if(selP && selP.alive && selP.x===x && selP.y===y) c.classList.add("selcell");
+  });
+  for(const b of G.bases){
+    const e=document.createElement("div"); e.className="base"+(b.owner?" held":(b.pending?" pend":""));
+    const [ax,ay]=dxy(b.x,b.y); e.style.left=(ax*100/9)+"%"; e.style.top=(ay*100/9)+"%";
+    e.innerHTML=`<i>${b.owner?"落":(b.pending?"危":"砦")}</i>`;
+    board.appendChild(e);
+  }
+  for(const p of alive()){
+    const mine=p.side===v;
+    if(!mine && !vis.has(key(p.x,p.y)) && !G.over) continue;
+    const e=document.createElement("div");
+    const own=(!G.over&&p.side===me);
+    e.className="tok"+(p.side===D?" d":"")
+      +(own&&!G.orders[p.id]?" need":"")+(own&&G.orders[p.id]?" done":"")
+      +(G.sel===p.id?" sel":"");
+    const [ax,ay]=dxy(p.x,p.y); e.style.left=(ax*100/9)+"%"; e.style.top=(ay*100/9)+"%";
+    e.innerHTML=`<i><span class="g">${SK[p.sk[0]].g}${SK[p.sk[1]].g}</span>
+      <span class="hp">${[1,2,3].map(n=>`<s class="${p.hp>=n?"on":(p.hp>=n-0.5?"half":"")}"></s>`).join("")}</span></i>`;
+    board.appendChild(e);
+  }
+  // 復帰予定の配置先
+  if(!G.over) for(const p of rezNow(me)){
+    const o=G.orders[p.id]; if(!o) continue;
+    const e=document.createElement("div");
+    e.className="tok rez"+(p.side===D?" d":"")+(G.sel===p.id?" sel":"");
+    const [ax,ay]=dxy(o[0],o[1]); e.style.left=(ax*100/9)+"%"; e.style.top=(ay*100/9)+"%";
+    e.innerHTML=`<i><span class="g">${SK[p.sk[0]].g}${SK[p.sk[1]].g}</span></i>`;
+    board.appendChild(e);
+  }
+  // 命令の矢印
+  const sv=document.getElementById("arrows"); sv.innerHTML="";
+  if(!G.over) for(const p of sideOf(me)){
+    const o=G.orders[p.id]; if(!o) continue;
+    if(o[0]===p.x&&o[1]===p.y) continue;
+    const [fx,fy]=dxy(p.x,p.y), [tx,ty]=dxy(o[0],o[1]);
+    const cx=(fx+.5)*100/9, cy=(fy+.5)*100/9, nx=(tx+.5)*100/9, ny=(ty+.5)*100/9;
+    sv.innerHTML+=`<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#f0a63c" stroke-width="1.4" stroke-linecap="round"/>
+      <circle cx="${nx}" cy="${ny}" r="2.1" fill="#f0a63c"/>`;
+  }
+  const rez=document.getElementById("rez");
+  const dead=G.pieces.filter(p=>p.side===me&&!p.alive).sort((a,b)=>rezLeft(a)-rezLeft(b));
+  if(G.over||!dead.length) rez.innerHTML="";
+  else{
+    rez.innerHTML='<span class="lb">復帰待ち</span>';
+    for(const p of dead){
+      const n=rezLeft(p), g=SK[p.sk[0]].g+SK[p.sk[1]].g;
+      if(n>0) rez.innerHTML+=`<span class="chip"><span class="gl">${g}</span><span class="cd">あと${n}ターン</span></span>`;
+      else{
+        const set=!!G.orders[p.id];
+        rez.innerHTML+=`<button data-rid="${p.id}" class="${set?"ok":""}" aria-pressed="${G.sel===p.id}">`+
+          `<span class="gl">${g}</span><span class="cd">${set?"配置ずみ":"配置する"}</span></button>`;
+      }
+    }
+    rez.onclick=e=>{
+      const b=e.target.closest("button[data-rid]"); if(!b) return;
+      const id=+b.dataset.rid;
+      G.sel=(G.sel===id?null:id); SE.tap(); paint();
+    };
+  }
+  const left=pending(me).filter(p=>!G.orders[p.id]).length;
+  const info=document.getElementById("info");
+  if(G.over){
+    info.className="info";
+    info.innerHTML=`<b>${G.over.winner===A?"攻め手":"守り手"}の勝ち</b> ── ${G.over.reason}`;
+  }else if(selP && !selP.alive){
+    const p=selP;
+    info.className="info picked";
+    info.innerHTML=`<div class="top"><span class="tag">復帰</span>
+      <b>${SK[p.sk[0]].n}・${SK[p.sk[1]].n}</b>
+      <button class="drop" id="unsel">選択を外す</button></div>
+      <div class="sd">◆ の位置から復帰先を選べます。${p.side===D?"まだ落ちていない砦の周囲8マスです。":"自陣の最前列です。"}</div>`;
+    document.getElementById("unsel").onclick=()=>{G.sel=null;SE.off();paint();};
+  }else if(selP){
+    const p=selP;
+    info.className="info picked";
+    info.innerHTML=`<div class="top"><span class="tag">選択中</span>
+      <b>${SK[p.sk[0]].n}・${SK[p.sk[1]].n}</b>
+      <span class="hpn">HP ${p.hp}</span><button class="drop" id="unsel">選択を外す</button></div>
+      <div class="sd">${SK[p.sk[0]].d}／${SK[p.sk[1]].d}</div>
+      <div class="sd">◆ の位置が動ける先。${has(p,"ONM")?"":"隠密がないので、必ずどこかへ動きます。"}</div>
+      ${has(p,"ONM")?`<button class="drop" id="stay" style="margin:6px 0 0">その場で待機する</button>`:""}`;
+    document.getElementById("unsel").onclick=()=>{G.sel=null;SE.off();paint();};
+    const st=document.getElementById("stay");
+    if(st) st.onclick=()=>{G.orders[p.id]=[p.x,p.y];G.sel=null;SE.order();paint();};
+  }else{
+    info.className="info";
+    info.innerHTML=`${me===A?"攻め手":"守り手"}の命令 ── 駒を選び、移動先を指定します。命令待ちは<b>あと${left}駒</b>`;
+  }
+  const rb=document.getElementById("resolve");
+  const waitNet=(G.mode==="online"&&NET.sent);
+  rb.disabled=(left>0||G.over||waitNet);
+  if(G.mode==="online") rb.textContent=waitNet?"相手を待っています":"命令を送る";
+  if(waitNet&&!G.over) info.innerHTML=NET.role==="host"
+    ? `<b>相手の命令を待っています</b>　そろい次第このターンを解決します。`
+    : `<b>命令を送りました</b>　相手の端末で解決され、結果が返ってきます。`;
+  document.getElementById("log").innerHTML=G.log.slice(-6).reverse().map(l=>`<div>${summary(l,v)}</div>`).join("");
+  if(G.over&&!fxBusy) showResult();
+}
+
+function onCell(e){
+  if(G.over) return;
+  const c=e.target.closest(".cell"); if(!c) return;
+  const x=+c.dataset.x,y=+c.dataset.y;
+  const me=G.entering;
+  if(G.sel!=null){
+    const p=G.pieces.find(q=>q.id===G.sel);
+    if(p){
+      const list=p.alive?reachable(p):rezSpots(p);
+      if(list.some(([a,b])=>a===x&&b===y)){ G.orders[p.id]=[x,y]; G.sel=null; SE.order(); paint(); return; }
+    }
+  }
+  const q=at(x,y);
+  G.sel=(q&&q.side===me)?q.id:null;
+  if(G.sel!=null) SE.tap(); else SE.off();
+  paint();
+}
+
+function submit(){
+  const me=G.entering;
+  if(pending(me).some(p=>!G.orders[p.id])) return;
+  ac();
+  const mine={}; for(const p of pending(me)) mine[p.id]=G.orders[p.id];
+  if(G.mode==="cpu"){
+    const foe=cpuOrders(me===A?D:A);
+    finish(me===A?mine:foe, me===A?foe:mine);
+  }else if(G.mode==="online"){
+    NET.mine[G.turn]=mine; NET.sent=true;
+    netSend({t:"orders",turn:G.turn,orders:mine});
+    SE.order(); paint(); netTryResolve();
+  }else{
+    if(me===A){ G.stashA=mine; G.orders={}; G.sel=null; G.entering=D; handoff("守り手"); }
+    else finish(G.stashA, mine);
+  }
+}
+function finish(oA,oD){
+  const ev=resolveTurn(oA,oD);
+  G.orders={}; G.sel=null;
+  G.log.push({turn:G.turn-1,ev});
+  G.entering=(G.mode==="local")?A:G.mySide;
+  if(G.mode==="online"&&NET.role==="host")
+    netSend({t:"state",turn:G.turn,pieces:G.pieces,bases:G.bases,killsOnA:G.killsOnA,
+             killLimit:G.killLimit,turnLimit:G.turnLimit,over:G.over,ev});
+  renderGame();
+  const dur=playTurn(ev, (G.mode==="local")?A:G.mySide);
+  if(G.mode==="local"&&!G.over) setTimeout(()=>handoff("攻め手"), dur);
+}
+function summary(rec,v){
+  const ev=rec.ev, vis=visibleSet(v);
+  const seen=e=>vis.has(key(e.x,e.y));
+  const parts=[];
+  const kills=ev.filter(e=>e.t==="kill");
+  const mine=kills.filter(e=>e.side===v).length, theirs=kills.filter(e=>e.side!==v).length;
+  if(mine) parts.push("自軍"+mine+"体が倒れた");
+  if(theirs) parts.push("敵"+theirs+"体を撃破");
+  const hits=ev.filter(e=>(e.t==="hit"||e.t==="shot")&&seen(e)).length;
+  const miss=ev.filter(e=>e.t==="miss"&&seen(e)).length;
+  if(hits) parts.push(hits+"回の交戦");
+  if(miss) parts.push("射撃"+miss+"発が外れた");
+  if(ev.some(e=>e.t==="base")) parts.push("砦が落ちた");
+  if(ev.some(e=>e.t==="wall"&&seen(e))) parts.push("壁が壊された");
+  return rec.turn+"ターン目 ── "+(parts.length?parts.join("、"):"接触なし");
+}
+function handoff(who){
+  openOv(`<div style="text-align:center"><h3>${who}へ</h3>
+  <p style="color:var(--dim)">端末を渡してから開いてください。<br>盤は${who}から見た霧に切り替わります。</p>
+  <div class="row"><button class="pri" id="go">${who}として見る</button></div></div>`);
+  document.getElementById("go").onclick=()=>{closeOv();renderGame();};
+}
+function showResult(){
+  if(!ov.hidden) return;
+  const w=G.over.winner===A?"攻め手":"守り手";
+  if(G.over.winner===G.mySide) SE.win(); else SE.lose();
+  openOv(`<h3>${w}の勝ち</h3><p>${G.over.reason}。霧は晴れています。</p>
+  <div class="row"><button id="look">盤を見る</button><button class="pri" id="again">もう一局</button></div>`);
+  document.getElementById("look").onclick=closeOv;
+  document.getElementById("again").onclick=()=>{closeOv();netReset();renderTitle();};
+}
+function showRules(){
+  openOv(`<h3>篭城戦のルール</h3>
+  <ul>
+    <li>両者が全ての駒に命令を出し、一斉に解決します。相手の命令は見えません。</li>
+    <li><b>駒は毎ターン必ず動きます。</b>その場に留まれるのは隠密を持つ駒だけです。</li>
+    <li>解決の順は 移動 → スキル① → スキル② → 通常攻撃。ダメージは最後にまとめて適用されるので相打ちが起こります。</li>
+    <li>通常攻撃は移動後に隣接した敵のうちHPが最も低い1体へ自動で行われます。壁越しには届きません。</li>
+    <li>同じマスへ2駒が入ろうとすると、どちらもその場に留まります。すれ違いも成立しません。</li>
+    <li>駒はHP3。そのターンにダメージを受けなければ1回復します。倒された駒は${RESPAWN}ターン後に復帰します。攻め手は自陣へ、守り手は<b>まだ落ちていない砦の周囲</b>へ戻ります。</li>
+    <li>攻め手は砦に乗って1巡耐えれば制圧。三つのうち${NEED_BASE}つ落とせば勝ちです。隠密で居座るか、二人がかりで受け渡します。</li>
+    <li>砦を1つ落とすごとに、攻め手の残基が${BONUS_KILL}増え、ターン上限が${BONUS_TURN}増えます。落とすほど押し込みやすくなります。</li>
+    <li>守り手は攻め手の残基を削り切るか、ターン上限まで守り切れば勝ちです。初期値は残基${NEED_KILL}・${MAXTURN}ターン。攻め手は復帰しても撃破数は戻りません。</li>
+    <li>守り手は開始前に、どれかの砦の周囲9マスなら好きな場所へ何体でも初期配置できます。</li>
+    <li>オンラインでは両者が命令を送り、部屋を作った側の端末がターンを解決して結果を配ります。通信の遅れで盤がずれることはありません。</li>
+    <li>味方のいるマスも移動先に選べます。相手が動けば入れ替わりに入り、居座られていればその手前で止まります。</li>
+    <li>短縮は自分の周りの壁を味方に開きますが、自分では通れません。別の短縮が開けた扉なら通れます。</li>
+    <li>見えるのは駒を中心とした十字の範囲だけで、壁の先には灯りが届きません。壁と砦の位置は双方に見えています。</li>
+  </ul>
+  <h3 style="font-size:16px">スキル ${SKIDS.length}種</h3>
+  <table class="sklist">${SKIDS.map(k=>`<tr><td class="k">${SK[k].g}</td><td class="n">${SK[k].n}</td><td>${SK[k].d}</td></tr>`).join("")}</table>
+  <div class="row"><button class="pri" id="ok">閉じる</button></div>`);
+  document.getElementById("ok").onclick=closeOv;
+}
+renderTitle();
+</script>
+</body>
+</html>
